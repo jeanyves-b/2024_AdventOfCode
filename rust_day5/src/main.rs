@@ -54,8 +54,8 @@ fn step2(rules: Vec<(&str, &str)>, lines: Vec<Vec<&str>>) {
 
 fn order<'a>(line: &'a Vec<&'a str>, rules: &Vec<(&str, &str)>) -> Vec<&'a str> {
     let mut ordered_line: Vec<&str> = vec![line[0]];
-    for i in 1..line.len() {
-        ordered_line.push(line[i]);
+    for (i, item) in line.iter().enumerate().skip(1) {
+        ordered_line.push(item);
         for j in (1..=i).rev() {
             match apply_rules(&ordered_line, rules) {
                 true => break,
