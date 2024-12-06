@@ -23,6 +23,7 @@ fn main() {
         .collect::<Vec<Vec<&str>>>();
 
     step1(rules.clone(), lines.clone());
+    step2(rules.clone(), lines.clone());
 }
 
 fn step1(rules: Vec<(&str, &str)>, lines: Vec<Vec<&str>>) {
@@ -35,6 +36,34 @@ fn step1(rules: Vec<(&str, &str)>, lines: Vec<Vec<&str>>) {
         .sum();
 
     println!("step1 : {}", resutl);
+}
+
+fn step2(rules: Vec<(&str, &str)>, lines: Vec<Vec<&str>>) {
+    let resutl: i32 = lines
+        .iter()
+        .map(|line| match apply_rules(line, &rules) {
+            true => 0,
+            false => order(line, &rules)[(line.len()) / 2]
+                .parse::<i32>()
+                .unwrap(),
+        })
+        .sum();
+
+    println!("step2 : {}", resutl);
+}
+
+fn order<'a>(line: &'a Vec<&'a str>, rules: &Vec<(&str, &str)>) -> Vec<&'a str> {
+    let mut ordered_line: Vec<&str> = vec![line[0]];
+    for i in 1..line.len() {
+        ordered_line.push(line[i]);
+        for j in (1..=i).rev() {
+            match apply_rules(&ordered_line, rules) {
+                true => break,
+                false => ordered_line.swap(j, j - 1),
+            }
+        }
+    }
+    ordered_line
 }
 
 fn apply_rule(slice: &[&str], before: &str, after: &str) -> bool {
