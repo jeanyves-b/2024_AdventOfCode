@@ -1,5 +1,6 @@
 use std::fs::read_to_string;
 
+#[derive(Clone)]
 enum SpaceType {
     Free,
     Obstacle,
@@ -7,6 +8,7 @@ enum SpaceType {
     New,
 }
 
+#[derive(Clone)]
 struct Space {
     space_type: SpaceType,
 }
@@ -194,7 +196,35 @@ fn step1(room: &mut Vec<Vec<Space>>, guard: &Guard) {
     println!("step1 = {}", result);
 }
 
-fn step2(room: &mut Vec<Vec<Space>>, guard: &Guard) {}
+fn is_looping(room: &mut Vec<Vec<Space>>, guard: &Guard) -> bool {
+    return false;
+}
+
+fn step2(room: &mut Vec<Vec<Space>>, guard: &Guard) {
+    let result: i32 = room
+        .into_iter()
+        .map(|mut line| {
+            line.into_iter()
+                .map(|space| match space.space_type {
+                    SpaceType::Visited => {
+                        space.space_type = SpaceType::New;
+                        if is_looping(&mut room.clone(), guard) {
+                            space.space_type = SpaceType::Visited;
+                            return 1;
+                        } else {
+                            space.space_type = SpaceType::Visited;
+                            return 0;
+                        }
+                    }
+                    _ => 0,
+                })
+                .collect::<Vec<i32>>()
+                .iter()
+                .sum::<i32>()
+        })
+        .sum();
+    println!("step2 = {}", result);
+}
 
 fn main() {
     //let binding = read_to_string("files/test.txt").unwrap();
@@ -223,5 +253,5 @@ fn main() {
         .collect();
 
     step1(&mut room, &guard);
-    step2(&room, &guard);
+    step2(&mut room, &guard);
 }
