@@ -21,7 +21,7 @@ impl Equation {
             vec_in.append(&mut vec_out);
         }
 
-        return vec_in.contains(&&self.result);
+        vec_in.contains(&self.result)
     }
 }
 
@@ -31,7 +31,7 @@ fn main() {
     let input: Vec<Equation> = binding
         .lines()
         .map(|line| Equation {
-            result: line.split(": ").nth(0).unwrap().parse::<i64>().unwrap(),
+            result: line.split(": ").next().unwrap().parse::<i64>().unwrap(),
             operation: line
                 .split(": ")
                 .nth(1)
@@ -46,9 +46,9 @@ fn main() {
     //step2(input.clone());
 }
 
-fn step1(input: &Vec<Equation>) {
+fn step1(input: &[Equation]) {
     let total: i64 = input
-        .into_iter()
+        .iter()
         .map(|line| match line.find_equal() {
             true => line.result,
             false => 0,
