@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 enum SpaceType {
     Free,
     Obstacle,
@@ -8,7 +8,7 @@ enum SpaceType {
     New,
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 struct Space {
     space_type: SpaceType,
 }
@@ -86,7 +86,7 @@ impl Guard {
     fn test_ahead(&mut self, room: &mut Vec<Vec<Space>>) -> bool {
         match self.direction {
             '<' => {
-                if self.position.0 == 0 {
+                if self.position.1 == 0 {
                     return false;
                 } else {
                     match room[self.position.0][self.position.1 - 1].space_type {
@@ -101,7 +101,7 @@ impl Guard {
                 }
             }
             '^' => {
-                if self.position.1 == 0 {
+                if self.position.0 == 0 {
                     return false;
                 } else {
                     match room[self.position.0 - 1][self.position.1].space_type {
@@ -192,27 +192,55 @@ fn step1(room: &mut Vec<Vec<Space>>, guard: &Guard) {
                 .sum::<i32>()
         })
         .sum();
-    print_room(room, guard);
+    print_room(room, &local_guard);
     println!("step1 = {}", result);
 }
 
 fn is_looping(room: &mut Vec<Vec<Space>>, guard: &Guard) -> bool {
+    let mut local_guard: Guard = Guard {
+        position: guard.position,
+        direction: guard.direction,
+    };
+    let mut path = vec![guard.position];
+    let mut previous_pos = guard.position;
+
+    while local_guard.test_ahead(room) {
+        for i in 1..path.len() {
+            if path[i] == local_guard.position
+                && path[i - 1] == previous_pos
+                && path[i] != path[i - 1]
+            {
+                return true;
+            }
+        }
+        path.push(local_guard.position);
+        previous_pos = local_guard.position;
+    }
     return false;
 }
 
-fn step2(room: &mut Vec<Vec<Space>>, guard: &Guard) {
+fn step2(room: &Vec<Vec<Space>>, guard: &Guard) {
+    let mut room_working = room.to_owned().clone();
     let result: i32 = room
         .into_iter()
-        .map(|mut line| {
+        .enumerate()
+        .map(|(i, line)| {
             line.into_iter()
-                .map(|space| match space.space_type {
+                .enumerate()
+                .map(|(j, space)| match space.space_type {
                     SpaceType::Visited => {
-                        space.space_type = SpaceType::New;
-                        if is_looping(&mut room.clone(), guard) {
-                            space.space_type = SpaceType::Visited;
+                        room_working[i][j].space_type = SpaceType::New;
+                        print!(
+                            "testing point : ({} - {}) -- {:?}",
+                            i, j, room_working[i][j]
+                        );
+                        if is_looping(&mut room_working, guard) {
+                            room_working[i][j].space_type = SpaceType::Visited;
+                            println!(" => true");
                             return 1;
                         } else {
-                            space.space_type = SpaceType::Visited;
+                            room_working[i][j].space_type = SpaceType::Visited;
+                            println!(" => false");
                             return 0;
                         }
                     }
