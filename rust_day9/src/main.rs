@@ -37,7 +37,7 @@ fn main() {
     step2(&disk2);
 }
 
-fn find_last(line: &Vec<isize>) -> Option<usize> {
+fn find_last(line: &[isize]) -> Option<usize> {
     for (i, elem) in line.iter().rev().enumerate().rev() {
         if *elem != -1 {
             return Some(i);
@@ -46,8 +46,8 @@ fn find_last(line: &Vec<isize>) -> Option<usize> {
     None
 }
 
-fn step1(disk: &Vec<Vec<isize>>) {
-    let total = disk.clone().iter_mut().fold(0, |tot, line| {
+fn step1(disk: &[Vec<isize>]) {
+    let total = disk.to_owned().iter_mut().fold(0, |tot, line| {
         tot + {
             let mut i: usize = 0;
             while line.contains(&-1) {
@@ -114,8 +114,8 @@ fn step2_sort(line: &mut Vec<(usize, isize)>) {
     }
 }
 
-fn step2(disk: &Vec<Vec<(usize, isize)>>) {
-    let total = disk.clone().iter_mut().fold(0, |tot, line| {
+fn step2(disk: &[Vec<(usize, isize)>]) {
+    let total = disk.to_owned().iter_mut().fold(0, |tot, line| {
         tot + {
             step2_sort(line);
             line.iter()
