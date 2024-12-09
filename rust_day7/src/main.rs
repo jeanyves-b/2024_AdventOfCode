@@ -30,15 +30,19 @@ fn main() {
     let binding = read_to_string("files/input.txt").unwrap();
     let input: Vec<Equation> = binding
         .lines()
-        .map(|line| Equation {
-            result: line.split(": ").next().unwrap().parse::<i64>().unwrap(),
-            operation: line
-                .split(": ")
-                .nth(1)
-                .unwrap()
-                .split(' ')
-                .map(|number| number.parse::<i64>().unwrap())
-                .collect(),
+        .map(|line| {
+            let Some((result, operation)) = line.split_once(": ").map(|(result, operation)| {
+                (
+                    result.parse::<i64>().unwrap(),
+                    operation
+                        .split(' ')
+                        .map(|number| number.parse::<i64>().unwrap())
+                        .collect(),
+                )
+            }) else {
+                panic!("this cannot happend");
+            };
+            Equation { result, operation }
         })
         .collect();
 

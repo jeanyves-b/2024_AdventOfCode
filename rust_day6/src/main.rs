@@ -14,50 +14,15 @@ struct Space {
 }
 fn to_space(character: char, position: (usize, usize)) -> (Space, Option<Guard>) {
     match character {
-        '<' => {
-            return (
-                Space {
-                    space_type: SpaceType::Visited,
-                },
-                Some(Guard {
-                    position: position,
-                    direction: '<',
-                }),
-            )
-        }
-        '^' => {
-            return (
-                Space {
-                    space_type: SpaceType::Visited,
-                },
-                Some(Guard {
-                    position: position,
-                    direction: '^',
-                }),
-            )
-        }
-        '>' => {
-            return (
-                Space {
-                    space_type: SpaceType::Visited,
-                },
-                Some(Guard {
-                    position: position,
-                    direction: '>',
-                }),
-            )
-        }
-        'v' => {
-            return (
-                Space {
-                    space_type: SpaceType::Visited,
-                },
-                Some(Guard {
-                    position: position,
-                    direction: 'v',
-                }),
-            )
-        }
+        '<' | '^' | '>' | 'v' => (
+            Space {
+                space_type: SpaceType::Visited,
+            },
+            Some(Guard {
+                position: position,
+                direction: character,
+            }),
+        ),
         '.' => {
             return (
                 Space {
@@ -83,11 +48,11 @@ struct Guard {
     direction: char,
 }
 impl Guard {
-    fn test_ahead(&mut self, room: &mut Vec<Vec<Space>>) -> bool {
+    fn move_guard(&mut self, room: &mut Vec<Vec<Space>>) -> bool {
         match self.direction {
             '<' => {
                 if self.position.1 == 0 {
-                    return false;
+                    false
                 } else {
                     match room[self.position.0][self.position.1 - 1].space_type {
                         SpaceType::Free | SpaceType::Visited => {
@@ -97,12 +62,12 @@ impl Guard {
                         }
                         SpaceType::Obstacle | SpaceType::New => self.direction = '^',
                     }
-                    return true;
+                    true
                 }
             }
             '^' => {
                 if self.position.0 == 0 {
-                    return false;
+                    false
                 } else {
                     match room[self.position.0 - 1][self.position.1].space_type {
                         SpaceType::Free | SpaceType::Visited => {
@@ -112,12 +77,12 @@ impl Guard {
                         }
                         SpaceType::Obstacle | SpaceType::New => self.direction = '>',
                     }
-                    return true;
+                    true
                 }
             }
             '>' => {
                 if self.position.1 == room[0].len() - 1 {
-                    return false;
+                    false
                 } else {
                     match room[self.position.0][self.position.1 + 1].space_type {
                         SpaceType::Free | SpaceType::Visited => {
@@ -127,12 +92,12 @@ impl Guard {
                         }
                         SpaceType::Obstacle | SpaceType::New => self.direction = 'v',
                     }
-                    return true;
+                    true
                 }
             }
             'v' => {
                 if self.position.0 == room.len() - 1 {
-                    return false;
+                    false
                 } else {
                     match room[self.position.0 + 1][self.position.1].space_type {
                         SpaceType::Free | SpaceType::Visited => {
@@ -142,7 +107,7 @@ impl Guard {
                         }
                         SpaceType::Obstacle | SpaceType::New => self.direction = '<',
                     }
-                    return true;
+                    true
                 }
             }
             _ => panic!(),
@@ -176,7 +141,7 @@ fn step1(room: &mut Vec<Vec<Space>>, guard: &Guard) {
         position: guard.position,
         direction: guard.direction,
     };
-    while local_guard.test_ahead(room) {
+    while local_guard.move_guard(room) {
         //print_room(room, guard);
     }
     let result: i32 = room
@@ -204,7 +169,7 @@ fn is_looping(room: &mut Vec<Vec<Space>>, guard: &Guard) -> bool {
     let mut path = vec![guard.position];
     let mut previous_pos = guard.position;
 
-    while local_guard.test_ahead(room) {
+    while local_guard.move_guard(room) {
         for i in 1..path.len() {
             if path[i] == local_guard.position
                 && path[i - 1] == previous_pos
@@ -230,17 +195,11 @@ fn step2(room: &Vec<Vec<Space>>, guard: &Guard) {
                 .map(|(j, space)| match space.space_type {
                     SpaceType::Visited => {
                         room_working[i][j].space_type = SpaceType::New;
-                        print!(
-                            "testing point : ({} - {}) -- {:?}",
-                            i, j, room_working[i][j]
-                        );
                         if is_looping(&mut room_working, guard) {
                             room_working[i][j].space_type = SpaceType::Visited;
-                            println!(" => true");
                             return 1;
                         } else {
                             room_working[i][j].space_type = SpaceType::Visited;
-                            println!(" => false");
                             return 0;
                         }
                     }
