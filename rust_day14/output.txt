@@ -1,0 +1,3 @@
+ne : 126 -- nw : 99 -- se : 138 -- sw : 127
+total step 1 : 218619324
+result step 2 : 6572
