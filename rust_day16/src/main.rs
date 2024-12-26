@@ -1,6 +1,6 @@
 #[derive(Clone, Debug)]
 struct Raindeer {
-    position: (usize, usize),
+    pos: (usize, usize),
     direction: char,
 }
 
@@ -14,8 +14,10 @@ fn main() {
         .map(|line| line.chars().map(|c| (c, u64::MAX)).collect())
         .collect();
 
+    let maze2: Vec<Vec<char>> = binding.lines().map(|line| line.chars().collect()).collect();
+
     step1(&mut maze.clone());
-    step2(&mut maze.clone());
+    step2(&mut maze2.clone());
 }
 
 fn up((x, y): (usize, usize)) -> (usize, usize) {
@@ -33,19 +35,19 @@ fn right((x, y): (usize, usize)) -> (usize, usize) {
 fn get_left(rednose: Raindeer) -> Raindeer {
     match rednose.direction {
         '^' => Raindeer {
-            position: left(rednose.position),
+            pos: left(rednose.pos),
             direction: '<',
         },
         'v' => Raindeer {
-            position: right(rednose.position),
+            pos: right(rednose.pos),
             direction: '>',
         },
         '<' => Raindeer {
-            position: down(rednose.position),
+            pos: down(rednose.pos),
             direction: 'v',
         },
         '>' => Raindeer {
-            position: up(rednose.position),
+            pos: up(rednose.pos),
             direction: '^',
         },
         c => panic!("error, found {c} in filtered list"),
@@ -54,19 +56,19 @@ fn get_left(rednose: Raindeer) -> Raindeer {
 fn get_right(rednose: Raindeer) -> Raindeer {
     match rednose.direction {
         '^' => Raindeer {
-            position: right(rednose.position),
+            pos: right(rednose.pos),
             direction: '>',
         },
         'v' => Raindeer {
-            position: left(rednose.position),
+            pos: left(rednose.pos),
             direction: '<',
         },
         '<' => Raindeer {
-            position: up(rednose.position),
+            pos: up(rednose.pos),
             direction: '^',
         },
         '>' => Raindeer {
-            position: down(rednose.position),
+            pos: down(rednose.pos),
             direction: 'v',
         },
         c => panic!("error, found {c} in filtered list"),
@@ -75,19 +77,19 @@ fn get_right(rednose: Raindeer) -> Raindeer {
 fn get_front(rednose: Raindeer) -> Raindeer {
     match rednose.direction {
         '^' => Raindeer {
-            position: up(rednose.position),
+            pos: up(rednose.pos),
             direction: '^',
         },
         'v' => Raindeer {
-            position: down(rednose.position),
+            pos: down(rednose.pos),
             direction: 'v',
         },
         '<' => Raindeer {
-            position: left(rednose.position),
+            pos: left(rednose.pos),
             direction: '<',
         },
         '>' => Raindeer {
-            position: right(rednose.position),
+            pos: right(rednose.pos),
             direction: '>',
         },
         c => panic!("error, found {c} in filtered list"),
@@ -96,34 +98,34 @@ fn get_front(rednose: Raindeer) -> Raindeer {
 
 fn solve_water_rec(maze: &mut Vec<Vec<(char, u64)>>, rednose: Raindeer, depth: u64) -> u64 {
     use std::cmp;
-    if depth < maze[rednose.position.1][rednose.position.0].1 {
-        maze[rednose.position.1][rednose.position.0].1 = depth;
+    if depth < maze[rednose.pos.1][rednose.pos.0].1 {
+        maze[rednose.pos.1][rednose.pos.0].1 = depth;
     }
 
-    if rednose.position == (maze[1].len() - 2, 1) {
+    if rednose.pos == (maze[1].len() - 2, 1) {
         return depth;
     }
 
     let frontdeer = get_front(rednose.clone());
     let mut front = u64::MAX;
-    if maze[frontdeer.position.1][frontdeer.position.0].0 != '#'
-        && maze[frontdeer.position.1][frontdeer.position.0].1 > depth
+    if maze[frontdeer.pos.1][frontdeer.pos.0].0 != '#'
+        && maze[frontdeer.pos.1][frontdeer.pos.0].1 > depth
     {
         front = solve_water_rec(maze, frontdeer, depth + 1);
     }
 
     let rightdeer = get_left(rednose.clone());
     let mut right = u64::MAX;
-    if maze[rightdeer.position.1][rightdeer.position.0].0 != '#'
-        && maze[rightdeer.position.1][rightdeer.position.0].1 > depth
+    if maze[rightdeer.pos.1][rightdeer.pos.0].0 != '#'
+        && maze[rightdeer.pos.1][rightdeer.pos.0].1 > depth
     {
         right = solve_water_rec(maze, rightdeer, depth + 1001);
     }
 
     let leftdeer = get_right(rednose.clone());
     let mut left = u64::MAX;
-    if maze[leftdeer.position.1][leftdeer.position.0].0 != '#'
-        && maze[leftdeer.position.1][leftdeer.position.0].1 > depth
+    if maze[leftdeer.pos.1][leftdeer.pos.0].0 != '#'
+        && maze[leftdeer.pos.1][leftdeer.pos.0].1 > depth
     {
         left = solve_water_rec(maze, leftdeer, depth + 1001);
     }
@@ -131,159 +133,131 @@ fn solve_water_rec(maze: &mut Vec<Vec<(char, u64)>>, rednose: Raindeer, depth: u
     return cmp::min(front, cmp::min(left, right));
 }
 
-fn step1(maze: &mut Vec<Vec<(char, u64)>>) {
+fn step1(maze: &Vec<Vec<(char, u64)>>) {
     let rednose = Raindeer {
-        position: (1, maze.len() - 2),
+        pos: (1, maze.len() - 2),
         direction: '>',
     };
     let found = solve_water_rec(&mut maze.clone(), rednose, 0);
     println!("Step 1 total = {found}");
 }
 
-fn solve_path_rec(
-    maze: &mut Vec<Vec<(char, u64)>>,
-    rednose: Raindeer,
-    depth: u64,
-) -> (u64, Vec<(usize, usize)>) {
-    if rednose.position == (maze[1].len() - 2, 1) {
-        if depth < maze[rednose.position.1][rednose.position.0].1 {
-            maze[rednose.position.1][rednose.position.0].1 = depth;
-        }
-        return (depth, vec![rednose.position]);
-    }
-
-    let frontdeer = get_front(rednose.clone());
-    let mut front: (u64, Vec<(usize, usize)>) = (u64::MAX, vec![]);
-    if maze[frontdeer.position.1][frontdeer.position.0].0 != '#' {
-        if depth <= maze[rednose.position.1][rednose.position.0].1 {
-            maze[rednose.position.1][rednose.position.0].1 = depth;
-            front = solve_path_rec(maze, frontdeer, depth + 1);
-        }
-    } else {
-        if depth + 1000 < maze[rednose.position.1][rednose.position.0].1 {
-            maze[rednose.position.1][rednose.position.0].1 = depth + 1000;
-        }
-    }
-
-    let rightdeer = get_left(rednose.clone());
-    let mut right: (u64, Vec<(usize, usize)>) = (u64::MAX, vec![]);
-    if maze[rightdeer.position.1][rightdeer.position.0].0 != '#'
-        && maze[rightdeer.position.1][rightdeer.position.0].1 >= depth
-    {
-        right = solve_path_rec(maze, rightdeer, depth + 1001);
-    }
-
-    let leftdeer = get_right(rednose.clone());
-    let mut left: (u64, Vec<(usize, usize)>) = (u64::MAX, vec![]);
-    if maze[leftdeer.position.1][leftdeer.position.0].0 != '#'
-        && maze[leftdeer.position.1][leftdeer.position.0].1 >= depth
-    {
-        left = solve_path_rec(maze, leftdeer, depth + 1001);
-    }
-
-    use std::cmp;
-    let min_value = cmp::min(front.0, cmp::min(left.0, right.0));
-    let mut paths: Vec<(usize, usize)> = vec![rednose.position];
-    if min_value == u64::MAX {
-        return (u64::MAX, paths);
-    }
-    if front.0 == min_value {
-        paths.append(&mut front.1);
-    }
-    if right.0 == min_value {
-        paths.append(&mut right.1);
-    }
-    if left.0 == min_value {
-        paths.append(&mut left.1);
-    }
-    return (min_value, paths);
-}
-
-fn find_paths_rec(
-    maze: &Vec<Vec<(char, u64)>>,
-    (x, y): (usize, usize),
+use std::collections::HashMap;
+fn build_paths_rec(
+    maze: &mut Vec<Vec<char>>,
+    rodolph: Raindeer,
+    current_path: Vec<(usize, usize)>,
+    d: u64,
+    min_d: &mut u64,
     paths: &mut Vec<(usize, usize)>,
-) {
-    paths.push((x, y));
-    let value = maze[y][x].1;
-    let (mut next_x, mut next_y) = up((x, y));
-    if maze[next_y][next_x].1 < value
-        && maze[next_y][next_x].0 != '#'
-        && !paths.contains(&(next_x, next_y))
-    {
-        find_paths_rec(maze, (next_x, next_y), paths)
+    repetitions: &mut HashMap<(usize, usize), u64>,
+) -> bool {
+    if maze[rodolph.pos.1][rodolph.pos.0] == '#' {
+        return false;
     }
-    (next_x, next_y) = right((x, y));
-    if maze[next_y][next_x].1 < value
-        && maze[next_y][next_x].0 != '#'
-        && !paths.contains(&(next_x, next_y))
-    {
-        find_paths_rec(maze, (next_x, next_y), paths)
+    match repetitions.get(&rodolph.pos) {
+        Some(x) => {
+            if d > x + 1000 {
+                return false;
+            } else {
+                repetitions.entry(rodolph.pos).and_modify(|val| *val = d);
+            }
+        }
+        None => {
+            repetitions.insert(rodolph.pos, d);
+        }
     }
-    (next_x, next_y) = down((x, y));
-    if maze[next_y][next_x].1 < value
-        && maze[next_y][next_x].0 != '#'
-        && !paths.contains(&(next_x, next_y))
-    {
-        find_paths_rec(maze, (next_x, next_y), paths)
+    if rodolph.pos.0 == maze[1].len() - 2 && rodolph.pos.1 == 1 {
+        if d <= *min_d {
+            if d < *min_d {
+                paths.clear();
+            }
+            *min_d = d;
+            if !paths.contains(&rodolph.pos) {
+                paths.push(rodolph.pos);
+            }
+            return true;
+        }
+        return false;
     }
-    (next_x, next_y) = left((x, y));
-    if maze[next_y][next_x].1 < value
-        && maze[next_y][next_x].0 != '#'
-        && !paths.contains(&(next_x, next_y))
-    {
-        find_paths_rec(maze, (next_x, next_y), paths)
+    let mut now_path = current_path.clone();
+    if current_path.contains(&rodolph.pos) {
+        return false;
+    } else {
+        now_path.push(rodolph.pos);
+    }
+    let left = build_paths_rec(
+        maze,
+        get_left(rodolph.clone()),
+        now_path.clone(),
+        d + 1001,
+        min_d,
+        paths,
+        repetitions,
+    );
+    let front = build_paths_rec(
+        maze,
+        get_front(rodolph.clone()),
+        now_path.clone(),
+        d + 1,
+        min_d,
+        paths,
+        repetitions,
+    );
+    let right = build_paths_rec(
+        maze,
+        get_right(rodolph.clone()),
+        now_path.clone(),
+        d + 1001,
+        min_d,
+        paths,
+        repetitions,
+    );
+    if left || front || right {
+        if !paths.contains(&rodolph.pos) {
+            paths.push(rodolph.pos);
+        }
+        return true;
+    } else {
+        return false;
     }
 }
 
-fn step2(maze: &mut Vec<Vec<(char, u64)>>) {
-    let rednose = Raindeer {
-        position: (1, maze.len() - 2),
+fn step2(maze: &mut Vec<Vec<char>>) {
+    let start = (1, maze.len() - 2);
+    let rodolph = Raindeer {
+        pos: start,
         direction: '>',
     };
+    let mut min_d = u64::MAX;
+    let mut paths: Vec<(usize, usize)> = vec![];
+    let mut repetitions: HashMap<(usize, usize), u64> = HashMap::new();
+    if build_paths_rec(
+        maze,
+        rodolph,
+        vec![],
+        0,
+        &mut min_d,
+        &mut paths,
+        &mut repetitions,
+    ) {
+        let total = paths.len();
+        println!("Step 2 total = {total}");
+    } else {
+        println!("Step 2 error");
+    }
 
-    let (path_length, mut total) = solve_path_rec(maze, rednose, 0);
-    total = total.into_iter().fold(vec![], |mut acc, p| {
-        if !acc.contains(&p) {
-            acc.push(p);
-        }
-        acc
-    });
-    println!("total = {total:?}");
-    let mut total2: Vec<(usize, usize)> = vec![];
-    find_paths_rec(&maze.clone(), (maze[1].len() - 2, 1), &mut total2);
-    println!("total2 = {total2:?}");
-    println!("Step 2 total = {path_length} => {}", total.len());
-    println!("Step 2 total2 = {path_length} => {}", total2.len());
-
-    let mut s = "".to_string();
+    let mut maze_map = "".to_string();
     for y in 0..maze.len() {
         for x in 0..maze[y].len() {
-            if maze[y][x].1 < u64::MAX {
-                if maze[y][x].1 > 99999 {
-                    s.push_str(&"trop ".to_string())
-                } else {
-                    s.push_str(&maze[y][x].1.to_string());
-                    if maze[y][x].1 < 10 {
-                        s.push(' ');
-                    }
-                    if maze[y][x].1 < 100 {
-                        s.push(' ');
-                    }
-                    if maze[y][x].1 < 1000 {
-                        s.push(' ');
-                    }
-                    if maze[y][x].1 < 10000 {
-                        s.push(' ');
-                    }
-                }
+            if paths.contains(&(x, y)) {
+                maze_map.push('O');
             } else {
-                s.push(maze[y][x].0);
-                s.push_str(&"----".to_string());
+                maze_map.push(maze[y][x]);
             }
-            s.push(' ')
+            maze_map.push(' ');
         }
-        s.push('\n');
+        maze_map.push('\n');
     }
-    println!("store :\n{s}");
+    println!("{maze_map}");
 }
